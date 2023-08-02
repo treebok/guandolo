@@ -46,14 +46,12 @@ await client.init({
     //await queryPineconeVectorStoreAndQueryLLM(client, indexName, question);
   })();*/
 
-/*
-
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 const openai = new OpenAIApi(configuration);
-*/
+
 const app = express()
 app.use(cors())
 app.use(express.json())
@@ -67,30 +65,45 @@ app.get('/', async (req, res) => {
 app.post('/', async (req, res) => {
   try {
     const prompt = req.body.prompt;
+    const taskId = req.body.taskId;
+    const myLittleArray=[
+      {role: 'system', content: 'you are friendly assistant that speaks like Shakespeare'},
+      {role: 'user', content: 'hello my name is juan'}
+    ];
+    console.log(taskId,'motherfuckerbeforeeee',prompt)
+    if (taskId == 3) {
+      const mylittleresponse = await queryPineconeVectorStoreAndQueryLLM(client, indexName, prompt);
 
+      res.status(200).send({
+        bot: mylittleresponse
+      });  
+    }
+    if (taskId == 1) {
+      const response = await openai.createCompletion({
+        model: "text-davinci-003",
+        prompt: `${prompt}`,
+        temperature: 0, // Higher values means the model will take more risks.
+        max_tokens: 3000, // The maximum number of tokens to generate in the completion. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
+        top_p: 1, // alternative to sampling with temperature, called nucleus sampling
+        frequency_penalty: 0.5, // Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
+        presence_penalty: 0, // Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.
+      });
 
-    const mylittleresponse = await queryPineconeVectorStoreAndQueryLLM(client, indexName, prompt);
-
-    res.status(200).send({
-      bot: mylittleresponse
-    });
-
-    /*
-    const response = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: `${prompt}`,
-      temperature: 0, // Higher values means the model will take more risks.
-      max_tokens: 3000, // The maximum number of tokens to generate in the completion. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
-      top_p: 1, // alternative to sampling with temperature, called nucleus sampling
-      frequency_penalty: 0.5, // Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
-      presence_penalty: 0, // Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.
-    });
-
-    res.status(200).send({
-      bot: response.data.choices[0].text
-    });*/
-
-
+      res.status(200).send({
+        bot: response.data.choices[0].text
+      });
+    }
+    if (taskId == 2) {
+      console.log('fck',prompt)
+      const completion = await openai.createChatCompletion({
+        model: "gpt-3.5-turbo",
+        messages: prompt,
+      });
+      console.log('youknowmotherfucker',completion.data.choices[0].message)
+      res.status(200).send({
+        bot: completion.data.choices[0].message.content
+      });
+    }
   } catch (error) {
     console.error(error)
     res.status(500).send(error || 'Something went wrong');
