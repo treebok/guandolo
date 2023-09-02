@@ -1,5 +1,5 @@
 import express from 'express'
-// import * as dotenv from 'dotenv'
+import * as dotenv from 'dotenv'
 import cors from 'cors'
 import { Configuration, OpenAIApi } from 'openai'
 
@@ -14,8 +14,8 @@ import { Configuration, OpenAIApi } from 'openai'
 import { PineconeClient } from "@pinecone-database/pinecone";
 import { DirectoryLoader } from "langchain/document_loaders/fs/directory";
 import { TextLoader } from "langchain/document_loaders/fs/text";
-// import { PDFLoader } from "langchain/document_loaders/fs/pdf";
-import * as dotenv from "dotenv";
+import { PDFLoader } from "langchain/document_loaders/fs/pdf";
+// import * as dotenv from "dotenv";
 import { createPineconeIndex } from "./1-createPineconeIndex.js";
 import { updatePinecone } from "./2-updatePinecone.js";
 import { queryPineconeVectorStoreAndQueryLLM } from "./3-queryPineconeAndQueryGPT.js";
@@ -24,6 +24,7 @@ dotenv.config();
 // 7. Set up DirectoryLoader to load documents from the ./documents directory
 const loader = new DirectoryLoader("./documents", {
   ".txt": (path) => new TextLoader(path),
+  ".pdf": (path) => new PDFLoader(path),
 });
 const docs = await loader.load();
 // 8. Set up variables for the filename, question, and index settings
@@ -37,14 +38,14 @@ await client.init({
   environment: process.env.PINECONE_ENVIRONMENT,
 });
 // 10. Run the main async function
-/*(async () => {
+(async () => {
   // 11. Check if Pinecone index exists and create if necessary
     //await createPineconeIndex(client, indexName, vectorDimension);
   // 12. Update Pinecone vector store with document embeddings
     //await updatePinecone(client, indexName, docs);
   // 13. Query Pinecone vector store and GPT model for an answer
     //await queryPineconeVectorStoreAndQueryLLM(client, indexName, question);
-  })();*/
+  })();
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -66,12 +67,8 @@ app.post('/', async (req, res) => {
   try {
     const prompt = req.body.prompt;
     const taskId = req.body.taskId;
-    const myLittleArray=[
-      {role: 'system', content: 'you are friendly assistant that speaks like Shakespeare'},
-      {role: 'user', content: 'hello my name is juan'}
-    ];
-    console.log(taskId,'motherfuckerbeforeeee',prompt)
-    if (taskId == 3) {
+    if (taskId == 0) {
+      console.log('entro a embeddings prompt',prompt);
       const mylittleresponse = await queryPineconeVectorStoreAndQueryLLM(client, indexName, prompt);
 
       res.status(200).send({
@@ -94,16 +91,15 @@ app.post('/', async (req, res) => {
       });
     }
     if (taskId == 2) {
-      console.log('fck',prompt)
       const completion = await openai.createChatCompletion({
         model: "gpt-3.5-turbo",
         messages: prompt,
       });
-      console.log('youknowmotherfucker',completion.data.choices[0].message)
       res.status(200).send({
         bot: completion.data.choices[0].message.content
       });
     }
+
   } catch (error) {
     console.error(error)
     res.status(500).send(error || 'Something went wrong');
