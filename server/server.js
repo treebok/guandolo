@@ -92,7 +92,7 @@ app.post('/', async (req, res) => {
     }
     if (taskId == 2) {
       const completion = await openai.createChatCompletion({
-        model: "gpt-3.5-turbo",
+        model: "gpt-3.5-turbo-1106",
         messages: prompt,
       });
       res.status(200).send({
