@@ -92,8 +92,9 @@ app.post('/', async (req, res) => {
     }
     if (taskId == 2) {
       const completion = await openai.createChatCompletion({
-        model: "gpt-3.5-turbo-1106",
+        model: "gpt-3.5-turbo",
         messages: prompt,
+        temperature: 2,
       });
       res.status(200).send({
         bot: completion.data.choices[0].message.content
