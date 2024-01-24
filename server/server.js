@@ -90,7 +90,7 @@ app.post('/', async (req, res) => {
         bot: response.data.choices[0].text
       });
     }
-    if (taskId == 2) {
+    if (taskId == 3) {
       const completion = await openai.createChatCompletion({
         model: "gpt-3.5-turbo-1106",
         messages: prompt,
@@ -102,6 +102,17 @@ app.post('/', async (req, res) => {
       });
     }
 
+    if (taskId == 2) {
+      const completion = await openai.createChatCompletion({
+        model: "gpt-3.5-turbo",
+        messages: prompt,
+      });
+      res.status(200).send({
+        bot: completion.data.choices[0].message.content
+      });
+    }
+
+    
   } catch (error) {
     console.error(error)
     res.status(500).send(error || 'Something went wrong');
