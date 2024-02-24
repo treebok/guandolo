@@ -94,7 +94,7 @@ app.post('/', async (req, res) => {
       const completion = await openai.createChatCompletion({
         model: "gpt-3.5-turbo-1106",
         messages: prompt,
-        temperature: 0.4,
+        temperature: 0,
         response_format: {"type": "json_object"},
       });
       res.status(200).send({
